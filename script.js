@@ -1,34 +1,63 @@
-function httpGet(Url)
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", Url, true );
-    xmlHttp.setRequestHeader("Authorization", localStorage.getItem('apiKey'));
-    xmlHttp.setRequestHeader("User-Agent", "Test Chrome Extension")
-    xmlHttp.send( null );
-    console.log(xmlHttp.responseText);
-    const obj = JSON.parse(xmlHttp.responseText);
-    return obj;
+const base = "https://hackhour.hackclub.com";
+
+
+async function getData(Url) {
+  try {
+    const response = await fetch(base+Url, {
+        headers: {
+            "User-Agent": "Test - Chrome Extension",
+            "Authorization": "Bearer " + localStorage.getItem('apiKey')
+        }
+    });
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    console.log(json);
+    return json;
+  } catch (error) {
+        console.error(error.message);
+  }
 }
 
-function httpSendPost(theUrl)
+
+async function postData(Url, Json)
 {
-    fetch("", {
-      method: "POST",
-      body: JSON.stringify({
-        userId: 1,
-        title: "Fix my bugs",
-        completed: false
-      }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8"
+    try {
+        const response = fetch(base+Url, {
+            method: "POST",
+            body: JSON.stringify(Json),
+            headers: {
+                "User-Agent": "Test - Chrome Extension",
+                "Authorization": "Bearer " + localStorage.getItem('apiKey')
+            }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Response status: ${response.status}`);
+        }
+
+        const json = await response.json();
+        console.log(json);
+        return json;
+      } catch (error) {
+            console.error(error.message);
       }
-    });
 }
+
+
+async function startSession(work)
+{
+    await postData("/api/start/" + localStorage.getItem('apiKey'), {work: work});
+}
+
 
 function saveKey()
 {
     key = document.getElementById('keyInput').value;
-    localStorage.setItem('apiKey', key); 
-    console.log("saved following apiKey: " + key);
-    httpGet("https://hackhour.hackclub.com/api/session/U07BU2HS17Z");
+    if (key != "") {
+        localStorage.setItem('apiKey', key); 
+        console.log("saved following apiKey: " + key);
+    }
 }
